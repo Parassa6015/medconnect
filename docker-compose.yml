@@ -11,6 +11,21 @@ services:
       - ./auth:/app
     depends_on:
       - mongo
+    networks:
+      - backend
+    
+  user:
+    build: ./user-service
+    ports:
+      - "5002:5002"
+    env_file:
+      - ./user-service/.env
+    volumes:
+      - ./user-service:/app
+    depends_on:
+      - mongo
+    networks:
+      - backend
 
   mongo:
     image: mongo
@@ -19,6 +34,10 @@ services:
       - "27017:27017"
     volumes:
       - mongo_data:/data/db
+    networks:
+      - backend
 
 volumes:
   mongo_data:
+networks:
+  backend:
