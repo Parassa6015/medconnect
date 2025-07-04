@@ -27,6 +27,19 @@ services:
     networks:
       - backend
 
+  appointment:
+    build: ./appointment-service
+    ports:
+      - "5003:5003"
+    env_file:
+      - ./appointment-service/.env
+    volumes:
+      - ./appointment-service:/app
+    depends_on:
+      - mongo
+    networks:
+      - backend
+
   mongo:
     image: mongo
     container_name: mongodb
