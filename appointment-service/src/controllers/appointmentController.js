@@ -1,4 +1,5 @@
 const Appointment = require('../models/Appointment');
+const axios = require('axios');
 
 
 exports.createappointment = async (req, res) => {
@@ -7,8 +8,8 @@ exports.createappointment = async (req, res) => {
       patientId,
       doctorId,
       date,
-      timeslot, // CORRECT spelling
-      isFirstTimeVisit, // CORRECT name
+      timeslot,
+      isFirstTimeVisit,
       notes,
       meetingLink,
       reasonForVisit,
@@ -26,6 +27,27 @@ exports.createappointment = async (req, res) => {
       isFirstTimeVisit === undefined
     ) {
       return res.status(400).json({ message: "Required Fields missing" });
+    }
+
+    // Validate patient and doctor exist
+    const serviceAuthHeader = { Authorization: `Bearer ${process.env.SERVICE_API_KEY}` };
+
+    console.log("Fetching user data with:", {
+        patientURL: `http://user:5002/api/users/${patientId}`,
+        doctorURL: `http://user:5002/api/users/${doctorId}`,
+        headers: serviceAuthHeader
+    });
+
+    const patientRes = await axios.get(`http://user:5002/api/users/${patientId}`, {
+      headers: serviceAuthHeader
+    });
+
+    const doctorRes = await axios.get(`http://user:5002/api/users/${doctorId}`, {
+      headers: serviceAuthHeader
+    });
+
+    if (!patientRes.data || !doctorRes.data) {
+      return res.status(400).json({ message: "Invalid patient or doctor ID." });
     }
 
     const newAppointment = new Appointment({
@@ -51,15 +73,33 @@ exports.createappointment = async (req, res) => {
 };
 
 
+
 exports.getAppointmentById = async (req, res) => {
   try {
     const appointment = await Appointment.findById(req.params.id);
-    if (!appointment) return res.status(404).json({ message: 'Appointment not found' });
-    res.json(appointment);
+    if (!appointment) {
+      return res.status(404).json({ message: "Appointment not found" });
+    }
+
+    const serviceAuthHeader = {
+      Authorization: `Bearer ${process.env.SERVICE_API_KEY}`
+    };
+
+    const [patientRes, doctorRes] = await Promise.all([
+      axios.get(`http://user:5002/api/users/${appointment.patientId}`, { headers: serviceAuthHeader }),
+      axios.get(`http://user:5002/api/users/${appointment.doctorId}`, { headers: serviceAuthHeader })
+    ]);
+
+    res.json({
+      appointment,
+      patient: patientRes.data,
+      doctor: doctorRes.data
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
+
 
 exports.filterAppointment = async (req,res) => {
     try{
@@ -85,37 +125,54 @@ exports.filterAppointment = async (req,res) => {
 
 exports.getAllAppointment = async (req, res) => {
   try {
-    // Read query parameters
     let { page, limit } = req.query;
-
-    // Convert to numbers and set default values if not provided
     page = parseInt(page) || 1;
     limit = parseInt(limit) || 10;
-
     const skip = (page - 1) * limit;
 
-    // Get total count for metadata
     const totalAppointments = await Appointment.countDocuments();
 
-    // Query users with skip and limit
     const appointments = await Appointment.find()
       .skip(skip)
-      .limit(limit); // Example of excluding sensitive fields
+      .limit(limit);
 
-    res.status(200).json({
+    const enrichedAppointments = await Promise.all(
+      appointments.map(async (appt) => {
+        const patientRes = await axios.get(
+          `http://user:5002/api/users/${appt.patientId}`,
+          {
+            headers: { Authorization: `Bearer ${process.env.SERVICE_API_KEY}` }
+          }
+        );
+
+        const doctorRes = await axios.get(
+          `http://user:5002/api/users/${appt.doctorId}`,
+          {
+            headers: { Authorization: `Bearer ${process.env.SERVICE_API_KEY}` }
+          }
+        );
+
+        return {
+          ...appt.toObject(),
+          patientProfile: patientRes.data,
+          doctorProfile: doctorRes.data
+        };
+      })
+    );
+
+    res.json({
       totalAppointments,
       totalPages: Math.ceil(totalAppointments / limit),
       currentPage: page,
       pageSize: limit,
-      appointments,
-      message: "appointment service is working!"
-    }
-  );
+      appointments: enrichedAppointments
+    });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: err.message });
   }
-  
 };
+
 
 
 exports.updateAppointment = async (req, res) => {
