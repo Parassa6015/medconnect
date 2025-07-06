@@ -3,10 +3,19 @@ const validator = require("validator");
 
 const UserData = new mongoose.Schema({
   authUserId: { type: mongoose.Schema.Types.ObjectId, required: true },
+  //  GET /api/appointment/filter?patientId=<authUserId> To use in frontend
+  // {
+  // "token": "...",
+  // "user": {
+  //   "id": "AUTH_USER_ID",
+  //   "name": "...",
+  //   "role": "user"
+  // }
+  // }
   firstName: { type: String, required: true },
-  lastName: { type: String, required: true },
-  gender: { type: String, required: true },
-  dob: { type: Date, required: true },
+  lastName: { type: String },
+  gender: { type: String },
+  dob: { type: Date},
   email: {
     type: String,
     required: true,
@@ -17,7 +26,8 @@ const UserData = new mongoose.Schema({
       message: "Please provide a valid email address"
     }
   },
-  address: { type: String, required: true }
+  address: { type: String},
+  role: { type: String, enum: ['user', 'doctor', 'admin'], default: 'user' }
 });
 
 module.exports = mongoose.model("UserData", UserData);

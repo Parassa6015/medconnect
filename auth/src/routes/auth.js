@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const protect = require('../middleware/authMiddleware');
+const axios = require('axios');
 
 router.post('/register', async (req, res) => {
   try {
@@ -31,6 +32,29 @@ router.post('/register', async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: '1d' }
     );
+
+    try {
+  const axiosResponse = await axios.post("http://user:5002/api/users",
+    {
+      authUserId: newUser._id,
+      firstName: newUser.name,
+      lastName: "",
+      email: newUser.email,
+      gender: "",
+      dob: "",
+      address: "",
+      role: newUser.role
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    }
+  );
+    console.log("Axios response:", axiosResponse.data);
+  } catch (axiosError) {
+    console.error("Axios error details:", axiosError.response?.data || axiosError.message);
+  }
 
     res.status(201).json({
       token,
