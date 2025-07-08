@@ -40,6 +40,20 @@ services:
     networks:
       - backend
 
+  notification:
+    build: ./notification-service
+    ports:
+      - "5004:5004"
+    env_file:
+      - ./notification-service/.env
+    volumes:
+      - ./notification-service:/app
+    depends_on:
+      - mongo
+    networks:
+      - backend
+
+
   mongo:
     image: mongo
     container_name: mongodb

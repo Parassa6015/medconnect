@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const authroutes = require('./routes/auth');  // ✅ Correct path
+const notificationRoutes = require("./routes/notificationProxyRoutes");
 
 const app = express();
 dotenv.config();
@@ -11,6 +12,7 @@ const PORT = process.env.PORT || 5001;
 app.use(express.json());
 
 app.use('/api/auth', authroutes);
+app.use("/api/notifications", notificationRoutes);
 
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
