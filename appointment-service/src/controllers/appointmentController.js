@@ -65,6 +65,23 @@ exports.createappointment = async (req, res) => {
     });
 
     await newAppointment.save();
+    const dateStr = new Date(newAppointment.date).toISOString().split("T")[0];
+    // After saving the appointment
+    await axios.post(
+      
+      "http://notification:5004/api/notification",
+      {
+        userId: patientId,
+        type: "appointment",
+        message: `Your appointment on ${dateStr} at ${timeslot} is confirmed.`,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.SERVICE_API_KEY}`
+        }
+      }
+    );
+
 
     res.status(201).json({ message: "Appointment created successfully", appointment: newAppointment });
   } catch (err) {
