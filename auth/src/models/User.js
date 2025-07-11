@@ -16,7 +16,15 @@ const userSchema = new mongoose.Schema({
   password: { type: String, required: true },
   role: { type: String, enum: ['user', 'doctor', 'admin'], required: true },
   isApproved: { type: Boolean, default: true },
-  medicalLicenseNumber: { type: String }
+  medicalLicenseNumber: {
+    type: String,
+    validate: {
+      validator: function(v) {
+        return this.role !== "doctor" || (v && v.length > 0);
+      },
+      message: "Medical license number is required for doctors."
+    }
+  }
 });
 
 module.exports = mongoose.model('User', userSchema);

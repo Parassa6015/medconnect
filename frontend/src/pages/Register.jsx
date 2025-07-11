@@ -22,7 +22,7 @@ const Register = () => {
 
       window.location.href = "/dashboard";
     } catch (err) {
-      setError(err.response?.data?.message || "Login failed");
+      setError(err.response?.data?.message || "Resgisteration failed");
     } finally {
       setLoading(false);
     }

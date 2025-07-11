@@ -9,6 +9,9 @@ const axios = require('axios');
 router.post('/register', async (req, res) => {
   try {
     const { name, email, password, role, medicalLicenseNumber } = req.body;
+    if (role === 'doctor' && !medicalLicenseNumber) {
+      return res.status(400).json({ message: "Medical license number is required for doctors." });
+    }
 
     const existingUser = await User.findOne({ email });
     if (existingUser) return res.status(400).json({ message: 'User already exists' });

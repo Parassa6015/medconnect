@@ -3,8 +3,10 @@ const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const authroutes = require('./routes/auth');  // ✅ Correct path
 const notificationRoutes = require("./routes/notificationProxyRoutes");
-
 const app = express();
+const cors = require("cors");
+app.use(cors());
+
 dotenv.config();
 
 const PORT = process.env.PORT || 5001;
