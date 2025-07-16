@@ -1,128 +1,114 @@
-// src/components/layout/Header.jsx
-import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import apiClient from "../../api/apiClient";
+import React, { useState, useRef, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
 const Header = () => {
-  const [notifications, setNotifications] = useState([]);
-  const [unreadCount, setUnreadCount] = useState(0);
+  const navigate = useNavigate();
+  const token = localStorage.getItem("token");
+  const user = JSON.parse(localStorage.getItem("user"));
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef();
 
+  // Close dropdown on outside click
   useEffect(() => {
-    const fetchNotifications = async () => {
-      try {
-        const user = JSON.parse(localStorage.getItem("user"));
-        if (!user) return;
-
-        const res = await apiClient.get(`/notifications/user/${user.id}`);
-        setNotifications(res.data);
-        const unread = res.data.filter((n) => !n.isRead).length;
-        setUnreadCount(unread);
-      } catch (err) {
-        console.error("Error fetching notifications:", err);
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownOpen(false);
       }
     };
-
-    fetchNotifications();
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    navigate("/login");
+  };
 
   return (
     <header style={styles.header}>
-      <Link to="/" style={styles.brand}>🏥 MedConnect</Link>
-
-      <div style={styles.right}>
-        {/* Notification Button */}
-        <div style={styles.notificationWrapper}>
-          <button
-            onClick={() => setDropdownOpen(!dropdownOpen)}
-            style={styles.notificationButton}
-          >
-            🔔
-            {unreadCount > 0 && (
-              <span style={styles.badge}>{unreadCount}</span>
+      <Link to="/" style={styles.logo}>MedConnect</Link>
+      <nav style={styles.nav}>
+        {token ? (
+          <div style={styles.dropdownContainer} ref={dropdownRef}>
+            <button
+              style={styles.dropdownToggle}
+              onClick={() => setDropdownOpen(!dropdownOpen)}
+            >
+              {user?.firstName || "Account"} ⏷
+            </button>
+            {dropdownOpen && (
+              <div style={styles.dropdownMenu}>
+                <Link to="/dashboard" style={styles.dropdownItem}>Dashboard</Link>
+                <Link to="/profile" style={styles.dropdownItem}>Profile</Link>
+                <button onClick={handleLogout} style={styles.dropdownItem}>Logout</button>
+              </div>
             )}
-          </button>
-          {dropdownOpen && (
-            <div style={styles.dropdown}>
-              {notifications.length === 0 ? (
-                <p>No notifications</p>
-              ) : (
-                notifications.slice(0, 5).map((n) => (
-                  <div key={n._id} style={styles.notificationItem}>
-                    {n.message}
-                  </div>
-                ))
-              )}
-              <Link to="/notifications">View Notifications</Link>
-            </div>
-          )}
-        </div>
-
-        <Link to="/dashboard">Dashboard</Link>
-      </div>
+          </div>
+        ) : (
+          <>
+            <Link to="/login" style={styles.navLink}>Login</Link>
+            <Link to="/register" style={styles.navLink}>Register</Link>
+          </>
+        )}
+      </nav>
     </header>
   );
 };
 
 const styles = {
   header: {
-    padding: "10px 20px",
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    background: "#f2f2f2",
+    padding: "10px 20px",
+    background: "#f5f5f5",
+    borderBottom: "1px solid #ddd",
   },
-  brand: {
-    fontWeight: "bold",
+  logo: {
     textDecoration: "none",
+    fontSize: "20px",
+    fontWeight: "bold",
     color: "#333",
   },
-  right: {
+  nav: {
     display: "flex",
     alignItems: "center",
-    gap: "20px",
   },
-  notificationWrapper: {
+  navLink: {
+    marginLeft: "15px",
+    textDecoration: "none",
+    color: "#007bff",
+  },
+  dropdownContainer: {
     position: "relative",
   },
-  notificationButton: {
+  dropdownToggle: {
     background: "none",
     border: "none",
-    fontSize: "20px",
     cursor: "pointer",
-    position: "relative",
+    fontSize: "16px",
+    color: "#007bff",
   },
-  badge: {
+  dropdownMenu: {
     position: "absolute",
-    top: "-5px",
-    right: "-5px",
-    background: "red",
-    color: "white",
-    borderRadius: "50%",
-    padding: "2px 6px",
-    fontSize: "12px",
-  },
-  dropdown: {
-    position: "absolute",
-    top: "30px",
-    right: "0",
-    background: "white",
+    top: "100%",
+    right: 0,
+    background: "#fff",
     border: "1px solid #ddd",
     borderRadius: "4px",
-    padding: "10px",
-    width: "200px",
-    boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+    boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
     zIndex: 10,
   },
-  notificationItem: {
-    fontSize: "14px",
-    marginBottom: "5px",
-  },
-  viewAll: {
+  dropdownItem: {
     display: "block",
-    marginTop: "5px",
-    textAlign: "center",
-    fontWeight: "bold",
+    padding: "8px 12px",
+    textDecoration: "none",
+    color: "#333",
+    cursor: "pointer",
+    textAlign: "left",
   },
 };
 

@@ -9,6 +9,8 @@ router.get('/appointment-info/:id',appointmentController.getAppointmentById);
 
 router.get('/allAppointments', appointmentController.getAllAppointment);
 
+router.get('/user/:userId', protect, appointmentController.getAppointmentsForUser);
+
 router.get('/filter',appointmentController.filterAppointment);
 
 router.put('/update/:id', protect, appointmentController.updateAppointment);

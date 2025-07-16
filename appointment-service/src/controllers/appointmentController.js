@@ -65,6 +65,17 @@ exports.createappointment = async (req, res) => {
     });
 
     await newAppointment.save();
+    await DoctorAvailability.findOneAndUpdate(
+      {
+        doctorId,
+        date: new Date(date),
+        "timeSlots.start": timeslot.split("-")[0],
+        "timeSlots.end": timeslot.split("-")[1]
+      },
+      {
+        $set: { "timeSlots.$.isBooked": true }
+      }
+    );
     const dateStr = new Date(newAppointment.date).toISOString().split("T")[0];
     // After saving the appointment
     await axios.post(
@@ -139,6 +150,21 @@ exports.filterAppointment = async (req,res) => {
         res.status(500).json({error: err.message});
     }
 };
+
+exports.getAppointmentsForUser = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const appointments = await Appointment.find({
+      $or: [{ patientId: userId }, { doctorId: userId }]
+    });
+
+    res.json({ appointments });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 
 exports.getAllAppointment = async (req, res) => {
   try {

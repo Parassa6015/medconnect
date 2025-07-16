@@ -29,6 +29,7 @@ const Dashboard = () => {
         <Link to="/appointments">View Appointments</Link>
         <Link to="/notifications">View Notifications</Link>
         <Link to="/profile">My Profile</Link>
+        <Link to="/meeting">Join Meeting</Link>
       </div>
 
       <button onClick={handleLogout}>Logout</button>

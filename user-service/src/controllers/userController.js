@@ -10,6 +10,14 @@ exports.getUserById = async (req, res) => {
   }
 };
 
+exports.getUserByAuthId = async (req, res) => {
+  const { authUserId } = req.params;
+  const user = await User.findOne({ authUserId });
+  if (!user) return res.status(404).json({ message: "User not found" });
+  res.status(200).json({ user });
+};
+
+
 exports.getAllUsers = async (req, res) => {
   try {
     // Read query parameters
@@ -76,7 +84,6 @@ exports.deleteUserById = async(req,res) =>{
 exports.updateUser = async (req, res) => {
   try {
     // Optional: If using token-based user identity
-    // Only allow updating own profile or if admin
     if (req.user.id !== req.params.id && req.user.role !== 'admin') {
       return res.status(403).json({ message: 'Forbidden: Not allowed to update this user' });
     }
@@ -88,8 +95,9 @@ exports.updateUser = async (req, res) => {
       if (req.body[key] !== undefined) updates[key] = req.body[key];
     }
 
-    const updatedUser = await User.findByIdAndUpdate(
-      req.params.id,
+    // Use findOneAndUpdate to look up by authUserId
+    const updatedUser = await User.findOneAndUpdate(
+      { authUserId: req.params.id },
       updates,
       { new: true, runValidators: true }
     );
@@ -107,3 +115,20 @@ exports.updateUser = async (req, res) => {
   }
 };
 
+
+exports.updateUserByAuthId = async (req, res) => {
+  try {
+    const { authUserId } = req.params;
+    const updatedUser = await User.findOneAndUpdate(
+      { authUserId },
+      req.body,
+      { new: true, runValidators: true }
+    );
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.status(200).json(updatedUser);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
