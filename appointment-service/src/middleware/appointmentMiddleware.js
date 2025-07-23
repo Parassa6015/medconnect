@@ -11,8 +11,11 @@ const protect = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded; // attach user payload
-    next(); // go to next route handler
+    if (decoded.role !== "doctor") {
+      return res.status(403).json({ message: "Only doctors can create availability." });
+    }
+    req.user = decoded;
+    next();
   } catch (error) {
     return res.status(403).json({ message: 'Invalid token' });
   }

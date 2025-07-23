@@ -1,6 +1,19 @@
 const express = require("express");
 const router = express.Router();
+const protect = require("../middleware/appointmentMiddleware"); 
 const controller = require("../controllers/availabilityController");
+
+router.post(
+  "/",
+  protect,
+  (req, res, next) => {
+    if (req.user.role !== "doctor") {
+      return res.status(403).json({ message: "Only doctors can create availability." });
+    }
+    next();
+  },
+  controller.createAvailability
+);
 
 // POST: Create availability
 router.post("/", controller.createAvailability);

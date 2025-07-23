@@ -1,5 +1,4 @@
 const DoctorAvailability = require("../models/DoctorAvailability");
-const protect = require("../middleware/appointmentMiddleware"); 
 
 // Create availability
 exports.createAvailability = async (req, res) => {
@@ -51,14 +50,4 @@ exports.getAvailabilityByDoctorAndDate = async (req, res) => {
   }
 };
 
-router.post(
-  "/",
-  protect,
-  (req, res, next) => {
-    if (req.user.role !== "doctor") {
-      return res.status(403).json({ message: "Only doctors can create availability." });
-    }
-    next();
-  },
-  controller.createAvailability
-);
+

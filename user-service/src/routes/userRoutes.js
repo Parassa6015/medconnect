@@ -9,6 +9,7 @@ router.get('/', userController.getAllUsers);
 
 // More specific route first
 router.get('/profile/:id', protect, userController.getUserById);
+router.get("/doctors", userController.getAllDoctors);
 
 // Service-to-service route (internal)
 router.get('/:id', serviceAuth, userController.getUserById);
