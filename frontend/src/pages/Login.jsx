@@ -18,7 +18,13 @@ const Login = () => {
 
         localStorage.setItem("token", token);
         localStorage.setItem("role", user.role);
-        localStorage.setItem("user", JSON.stringify(res.data.user));
+        localStorage.setItem("user", JSON.stringify({
+            id: res.data.user.id || res.data.user._id,
+            email: res.data.user.email,
+            role: res.data.user.role
+        }));
+
+
 
 
         if (user.role === "admin") {
@@ -33,6 +39,8 @@ const Login = () => {
         } finally {
             setLoading(false);
         }
+
+        
     };
 
     return (

@@ -9,14 +9,17 @@ router.get('/', userController.getAllUsers);
 
 // More specific route first
 router.get('/profile/:id', protect, userController.getUserById);
+router.get("/doctors", userController.getAllDoctors);
 
 // Service-to-service route (internal)
 router.get('/:id', serviceAuth, userController.getUserById);
+router.get('/by-auth/:authUserId', protect, userController.getUserByAuthId);
 
 // User-protected CRUD
 router.post('/', protect, userController.createUser);
 router.put('/:id', protect, userController.updateUser);
 router.delete('/:id', protect, userController.deleteUserById);
+router.put('/by-auth/:authUserId', protect, userController.updateUserByAuthId);
 
 
 module.exports = router;

@@ -1,0 +1,90 @@
+/* Container */
+.appointment-container {
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 25px;
+  background: #f8fafc;
+  border-radius: 10px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
+}
+
+/* Heading */
+.appointment-container h2 {
+  text-align: center;
+  color: #1e293b;
+  font-size: 1.8rem;
+  margin-bottom: 30px;
+}
+
+/* List */
+.appointment-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+  padding: 0;
+  list-style: none;
+}
+
+/* Item */
+.appointment-item {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 20px;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.appointment-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* Text */
+.appointment-item strong {
+  color: #0f172a;
+}
+
+.appointment-item p {
+  margin: 6px 0;
+  color: #334155;
+  font-size: 0.95rem;
+}
+
+/* Button */
+.toggle-button {
+  margin-top: 12px;
+  padding: 8px 14px;
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background 0.2s ease;
+}
+
+.toggle-button:hover {
+  background: #1d4ed8;
+}
+
+/* Expanded details */
+.appointment-details {
+  margin-top: 12px;
+  background: #f1f5f9;
+  padding: 12px;
+  border-radius: 6px;
+}
+
+/* Error & empty */
+.error-message {
+  color: #dc2626;
+  text-align: center;
+}
+
+.empty-message {
+  text-align: center;
+  color: #64748b;
+}
