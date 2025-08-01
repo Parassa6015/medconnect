@@ -138,7 +138,7 @@ exports.updateUserByAuthId = async (req, res) => {
 exports.getAllDoctors = async (req, res) => {
   try {
     const doctors = await User.find({ role: "doctor" }).select(
-      "_id firstName lastName email specialty"
+      "_id authUserId firstName lastName email specialty"
     );
     res.status(200).json(doctors);
   } catch (err) {

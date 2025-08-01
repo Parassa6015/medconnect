@@ -101,7 +101,7 @@ const AppointmentList = () => {
                     <button
                       onClick={() => handleViewProfile(appt.patientId)}
                       className="view-profile-button"
-                    >
+                    > 
                       View Patient Profile
                     </button>
                   )}

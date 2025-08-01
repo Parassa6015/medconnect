@@ -1,19 +1,19 @@
 import React, { useEffect, useState } from "react";
-import userApiClient from "../../api/UserApiClient";
+import userApiClient from "../../../api/UserApiClient";
 import { useParams } from "react-router-dom";
 
 const PatientProfileView = () => {
-  const { id } = useParams();
+  const { patientId } = useParams();
   const [profile, setProfile] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   // const user = JSON.parse(localStorage.getItem("user"));
-  // console.log(user);
+  console.log(patientId);
 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const res = await userApiClient.get(`/medical-profiles/${id}`); // changed route
+        const res = await userApiClient.get(`/medical-profiles/by-user/${patientId}`);
         setProfile(res.data);
       } catch (err) {
         setError(
@@ -24,7 +24,9 @@ const PatientProfileView = () => {
       }
     };
     fetchProfile();
-  }, [id]);
+  }, [patientId]);
+
+  console.log(profile);
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p style={{ color: "red" }}>{error}</p>;

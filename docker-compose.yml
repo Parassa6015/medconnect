@@ -15,6 +15,7 @@ services:
       - backend
     
   user:
+    container_name: user
     build: ./user-service
     ports:
       - "5002:5002"
