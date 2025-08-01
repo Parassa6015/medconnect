@@ -12,8 +12,8 @@ router.get('/profile/:id', protect, userController.getUserById);
 router.get("/doctors", userController.getAllDoctors);
 
 // Service-to-service route (internal)
-router.get('/:id', serviceAuth, userController.getUserById);
-router.get('/by-auth/:authUserId', protect, userController.getUserByAuthId);
+router.get('/internal/:id', serviceAuth, userController.getUserById);
+router.get('/by-auth/:authUserId', serviceAuth, userController.getUserByAuthId);
 
 // User-protected CRUD
 router.post('/', protect, userController.createUser);

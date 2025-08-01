@@ -1,12 +1,13 @@
 const express = require('express');
 const router = express.Router();
-const medicalProfileController = require('../controllers/medicalProfileController');
-const protect = require('../middleware/userMiddleware'); // 🔒 JWT-based user protection
 
-// GET patient's medical profile by userId
-router.get('/:userId', protect, medicalProfileController.getMedicalProfileByUserId);
+const {
+  getMedicalProfileByUserId,
+  updateMedicalProfile,
+} = require("../controllers/medicalProfileController");
 
-// UPDATE or CREATE medical profile for a patient
-router.put('/:userId', protect, medicalProfileController.updateMedicalProfile);
+// ✅ Use a custom route like this:
+router.get('/by-user/:userId', getMedicalProfileByUserId);
+router.put('/by-user/:userId', updateMedicalProfile);
 
 module.exports = router;

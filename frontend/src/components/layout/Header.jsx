@@ -40,12 +40,12 @@ const Header = () => {
               {user?.firstName || "Account"} ⏷
             </button>
             {dropdownOpen && (
-              <div style={styles.dropdownMenu}>
-                <Link to="/dashboard" style={styles.dropdownItem}>Dashboard</Link>
-                <Link to="/profile" style={styles.dropdownItem}>Profile</Link>
-                <button onClick={handleLogout} style={styles.dropdownItem}>Logout</button>
-              </div>
-            )}
+                <div style={styles.dropdownMenu}>
+                  <Link to="/dashboard" style={styles.dropdownItem} onClick={() => setDropdownOpen(false)}>Dashboard</Link>
+                  <Link to="/profile" style={styles.dropdownItem} onClick={() => setDropdownOpen(false)}>Profile</Link>
+                  <button onClick={() => { handleLogout(); setDropdownOpen(false); }} style={styles.dropdownItem}>Logout</button>
+                </div>
+              )}
           </div>
         ) : (
           <>

@@ -345,6 +345,7 @@ const DoctorAvailabilityList = () => {
     setMessage("");
 
     try {
+      console.log(date);
       await apiClient.post("/availability", {
         doctorId: user.id,
         date,
@@ -357,6 +358,7 @@ const DoctorAvailabilityList = () => {
 
       const refreshed = await apiClient.get(`/availability/doctor/${user.id}`);
       const today = new Date();
+      console.log(today);
       today.setHours(0, 0, 0, 0);
       const future = refreshed.data.filter((a) => {
         const slotDate = new Date(a.date);

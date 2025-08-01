@@ -9,7 +9,11 @@ exports.createAvailability = async (req, res) => {
       return res.status(400).json({ message: "Missing required fields." });
     }
 
-    const availability = new DoctorAvailability({ doctorId, date, timeSlots });
+    // Convert "2025-08-07" → Date object at UTC midnight
+    const [year, month, day] = date.split("-");
+    const dateOnly = new Date(Date.UTC(year, month - 1, day));
+
+    const availability = new DoctorAvailability({ doctorId, date: dateOnly, timeSlots });
     await availability.save();
 
     res.status(201).json({ message: "Availability created.", availability });
@@ -17,6 +21,7 @@ exports.createAvailability = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
 
 // Get all availabilities for a doctor
 exports.getAvailabilityByDoctor = async (req, res) => {
@@ -34,10 +39,17 @@ exports.getAvailabilityByDoctor = async (req, res) => {
 exports.getAvailabilityByDoctorAndDate = async (req, res) => {
   try {
     const { doctorId, date } = req.params;
+    console.log(date);
+    const start = new Date(date);
+    const end = new Date(date);
+    end.setUTCHours(23, 59, 59, 999);
 
     const availability = await DoctorAvailability.findOne({
       doctorId,
-      date: new Date(date),
+      date: {
+        $gte: start,
+        $lte: end
+      }
     });
 
     if (!availability) {
@@ -49,5 +61,6 @@ exports.getAvailabilityByDoctorAndDate = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
 
 

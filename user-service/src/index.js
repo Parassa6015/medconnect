@@ -4,7 +4,7 @@ const dotenv = require('dotenv');
 const userRoutes = require('./routes/userRoutes');
 const cors = require("cors");
 const medicalProfileRoutes = require('./routes/medicalProfileRoutes');
-
+const doctorProfileRoutes = require('./routes/DoctorProfileRoutes');
 
 const app = express();
 dotenv.config();
@@ -14,6 +14,7 @@ const PORT = process.env.PORT || 5002;
 
 app.use(express.json());
 
+app.use('/api/doctor-profiles', doctorProfileRoutes);
 app.use('/api/medical-profiles', medicalProfileRoutes);
 app.use('/api/users', userRoutes);
 

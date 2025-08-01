@@ -1,4 +1,5 @@
 const Appointment = require('../models/Appointment');
+const DoctorAvailability = require('../models/DoctorAvailability');
 const axios = require('axios');
 
 
@@ -18,6 +19,7 @@ exports.createappointment = async (req, res) => {
       followUpRequired
     } = req.body;
 
+    console.log("Received data:", req.body);
     // Validate required fields
     if (
       !patientId ||
@@ -33,16 +35,18 @@ exports.createappointment = async (req, res) => {
     const serviceAuthHeader = { Authorization: `Bearer ${process.env.SERVICE_API_KEY}` };
 
     console.log("Fetching user data with:", {
-        patientURL: `http://user:5002/api/users/${patientId}`,
-        doctorURL: `http://user:5002/api/users/${doctorId}`,
+        patientURL: `http://user:5002/api/users/by-auth/${patientId}`,
+        doctorURL: `http://user:5002/api/users/by-auth/${doctorId}`,
         headers: serviceAuthHeader
     });
 
-    const patientRes = await axios.get(`http://user:5002/api/users/${patientId}`, {
+    console.log("Step 2: Fetching patient info");
+    const patientRes = await axios.get(`http://user:5002/api/users/by-auth/${patientId}`, {
       headers: serviceAuthHeader
     });
+    console.log("Step 2 Done: Patient found");
 
-    const doctorRes = await axios.get(`http://user:5002/api/users/${doctorId}`, {
+    const doctorRes = await axios.get(`http://user:5002/api/users/by-auth/${doctorId}`, {
       headers: serviceAuthHeader
     });
 
@@ -96,6 +100,7 @@ exports.createappointment = async (req, res) => {
 
     res.status(201).json({ message: "Appointment created successfully", appointment: newAppointment });
   } catch (err) {
+     console.error("Appointment creation failed:", err);
     res.status(500).json({ error: err.message });
   }
 };
