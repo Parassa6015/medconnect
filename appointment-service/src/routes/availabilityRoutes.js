@@ -15,13 +15,11 @@ router.post(
   controller.createAvailability
 );
 
-// POST: Create availability
-router.post("/", controller.createAvailability);
+// This is the new, unique route for fetching available dates for the calendar
+router.get("/doctor/:doctorId/dates", controller.getAvailableDatesByDoctor);
 
-// GET: All availabilities for a doctor
-router.get("/doctor/:doctorId", controller.getAvailabilityByDoctor);
-
-// GET: Availability for a doctor on a specific date
 router.get("/doctor/:doctorId/date/:date", controller.getAvailabilityByDoctorAndDate);
+
+router.get("/doctor/:doctorId", controller.getAvailabilityByDoctor);
 
 module.exports = router;

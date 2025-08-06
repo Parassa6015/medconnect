@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import apiClient from "../api/userApiClient";
 import "../style.css";
+import serviceApiClient from "../api/serviceAuthApicClient";
 
 const Profile = () => {
   const [user, setUser] = useState({
@@ -16,9 +17,11 @@ const Profile = () => {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
+  // Fix 1: Ensure you are using the correct environment variable
+  const serviceApiKey = import.meta.env.VITE_SERVICE_API_KEY;
+
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem("user"));
-    console.log("Loaded user from storage:", storedUser);
 
     if (!storedUser) {
       setError("No user data found.");
@@ -28,8 +31,10 @@ const Profile = () => {
 
     const fetchProfile = async () => {
       try {
-        const res = await apiClient.get(`/users/by-auth/${storedUser.id}`);
-        console.log("Fetched full profile:", res.data);
+        const headers = { 
+          'Authorization': `Bearer ${serviceApiKey}` 
+        };
+        const res = await serviceApiClient.get(`/users/by-auth/${storedUser.id}`, { headers });
         setUser(res.data.user);
       } catch (err) {
         setError(err.response?.data?.message || "Failed to load profile.");
@@ -39,8 +44,7 @@ const Profile = () => {
     };
 
     fetchProfile();
-  }, []);
-
+  }, [serviceApiKey]);
 
   const handleChange = (e) => {
     setUser((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -51,14 +55,19 @@ const Profile = () => {
     setError("");
     setSaving(true);
     try {
-      const res = await apiClient.put(`/users/${storedUser.id} `, {
+      const headers = {
+        'Authorization': `Bearer ${serviceApiKey}`
+      };
+
+      // Corrected URL and added headers
+      const res = await apiClient.put(`/users/by-auth/${storedUser.id}`, {
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,
         gender: user.gender,
         dob: user.dob,
         address: user.address,
-      });
+      }, { headers });
 
       localStorage.setItem("user", JSON.stringify(res.data.user));
       alert("Profile updated successfully!");
@@ -75,8 +84,8 @@ const Profile = () => {
     <div className="profile-container">
       <h2>Your Profile</h2>
       {error && <p className="error">{error}</p>}
-
       <div className="profile-form">
+        {/* ... form fields ... */}
         <label>
           First Name:
           <input
