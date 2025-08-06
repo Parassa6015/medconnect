@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import apiClient from "../../api/UserApiClient"; // Make sure this points to user-service
+import apiClient from "../../api/userApiClient"
 const user = JSON.parse(localStorage.getItem("user"));
 
 const DoctorProfileForm = () => {

@@ -11,10 +11,19 @@ exports.getUserById = async (req, res) => {
 };
 
 exports.getUserByAuthId = async (req, res) => {
-  const { authUserId } = req.params;
-  const user = await User.findOne({ authUserId });
-  if (!user) return res.status(404).json({ message: "User not found" });
-  res.status(200).json({ user });
+  try {
+    const { authUserId } = req.params;
+    const user = await User.findOne({ authUserId });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({ user });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
 };
 
 

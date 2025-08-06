@@ -62,5 +62,28 @@ exports.getAvailabilityByDoctorAndDate = async (req, res) => {
   }
 };
 
+exports.getAvailableDatesByDoctor = async (req, res) => {
+  try {
+    const { doctorId } = req.params;
+    const { startDate, endDate } = req.query; // Get startDate and endDate from query
+    
+    // Build the query to filter by date range
+    const query = {
+      doctorId,
+      date: {
+        $gte: new Date(startDate),
+        $lte: new Date(endDate),
+      },
+      "timeSlots.isBooked": false, // Query only for unbooked slots
+    };
 
+    const records = await DoctorAvailability.find(query);
 
+    // Extract unique dates from the records and format them as YYYY-MM-DD strings
+    const availableDates = [...new Set(records.map(r => r.date.toISOString().split("T")[0]))];
+    
+    res.json({ availableDates });
+  } catch (err) {
+    res.status(500).json({ message: "Error fetching available dates" });
+  }
+};

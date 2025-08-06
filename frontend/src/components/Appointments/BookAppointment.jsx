@@ -1,74 +1,125 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import appointmentApiClient from "../../api/AppointmentApiClient";
+import Calendar from "react-calendar";
+import moment from "moment";
+import 'react-calendar/dist/Calendar.css';
 
 const BookAppointment = () => {
   const { doctorId } = useParams();
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user"));
 
-  const [date, setDate] = useState("");
+  const [date, setDate] = useState(null);
   const [availability, setAvailability] = useState([]);
+  const [availableDates, setAvailableDates] = useState([]);
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [reason, setReason] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-  const [isFirstTimeVisit, setIsFirstTimeVisit] = useState(true); // default to true
+  const [isFirstTimeVisit, setIsFirstTimeVisit] = useState(true);
 
+  const [activeDate, setActiveDate] = useState(new Date());
 
+  // 1. Fetch available dates for the month
   useEffect(() => {
-  const fetchAvailability = async () => {
-    if (!date) return; // wait for date to be selected
-    try {
-      const res = await appointmentApiClient.get(`/availability/doctor/${doctorId}/date/${date}`);
-      setAvailability(res.data?.timeSlots || []);
-      console.log("Received availability:", res.data);
-    } catch (err) {
-      console.error("Failed to fetch availability:", err);
-      setError("Failed to fetch availability");
-    }
-  };
-  fetchAvailability();
-}, [doctorId, date]);
+    const fetchAvailableDates = async () => {
+      try {
+        const startDate = moment(activeDate).startOf('month').format('YYYY-MM-DD');
+        const endDate = moment(activeDate).endOf('month').format('YYYY-MM-DD');
 
-    const handleSubmit = async (e) => {
-      e.preventDefault();
-      if (!selectedSlot || !date || !reason) {
-        setError("Please fill all fields.");
+        const res = await appointmentApiClient.get(`/availability/doctor/${doctorId}/dates?startDate=${startDate}&endDate=${endDate}`);
+        setAvailableDates(res.data.availableDates);
+        setError("");
+      } catch (err) {
+        console.error("Failed to fetch available dates:", err);
+        setError("Failed to fetch available dates for this month.");
+      }
+    };
+    fetchAvailableDates();
+  }, [doctorId, activeDate]);
+
+
+  // 2. Fetch slots for a specific selected date
+  useEffect(() => {
+    const fetchAvailabilityForDate = async () => {
+      if (!date) {
+        setAvailability([]);
         return;
       }
-      console.log(date);
-
       try {
-        await appointmentApiClient.post("/appointment", {
-          doctorId,
-          patientId: user.id,
-          date,
-          timeslot: selectedSlot, 
-          reasonForVisit: reason,
-          isFirstTimeVisit 
-        });
+        const formattedDate = moment(date).format('YYYY-MM-DD');
+        const res = await appointmentApiClient.get(`/availability/doctor/${doctorId}/date/${formattedDate}`);
 
-        setMessage("Appointment booked successfully!");
-        navigate("/appointments");
+        if (!res.data || !res.data.timeSlots || res.data.timeSlots.length === 0) {
+          setAvailability([]);
+        } else {
+          const unbookedSlots = res.data.timeSlots.filter(slot => !slot.isBooked);
+          setAvailability(unbookedSlots);
+        }
+        setError("");
       } catch (err) {
-        setError(err.response?.data?.message || "Booking failed");
+        if (err.response?.status === 404) {
+          setAvailability([]);
+          setError("No availability found for this date.");
+        } else {
+          console.error("Failed to fetch availability:", err);
+          setError("Failed to fetch availability");
+        }
       }
     };
 
+    fetchAvailabilityForDate();
+  }, [doctorId, date]);
 
 
-    const availableSlots = availability.find(
-  (a) => new Date(a.date).toISOString().slice(0, 10) === date
-)?.timeSlots || [];
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!selectedSlot || !date || !reason) {
+      setError("Please fill all fields.");
+      return;
+    }
+    try {
+      await appointmentApiClient.post("/appointment", {
+        doctorId,
+        patientId: user.id,
+        date: moment(date).format("YYYY-MM-DD"),
+        timeslot: selectedSlot,
+        reasonForVisit: reason,
+        isFirstTimeVisit
+      });
 
-    console.log("Looking for date:", date);
-    availability.forEach((a) =>
-          console.log("Checking:", a.date.slice(0, 10), "vs", date)
-    );
+      setMessage("Appointment booked successfully!");
+      navigate("/appointments");
+    } catch (err) {
+      setError(err.response?.data?.message || "Booking failed");
+    }
+  };
 
   return (
     <div style={styles.container}>
+      {/* Updated inline styles to make the calendar look better */}
+      <style>{`
+        .react-calendar {
+          width: 100% !important;
+          border: 1px solid #ccc;
+          font-family: Arial, Helvetica, sans-serif;
+          line-height: 1.125em;
+        }
+        .react-calendar__tile.has-availability {
+          background-color: #e6f7ff !important;
+          color: #004085;
+          border-radius: 50%;
+          border: 1px solid #b3d9ff;
+        }
+        .react-calendar__tile.has-availability:hover {
+          background-color: #cceeff !important;
+        }
+        .react-calendar__tile--active {
+          background: #006edc !important;
+          color: white;
+        }
+      `}</style>
       <h2>Book Appointment</h2>
       {message && <p style={{ color: "green" }}>{message}</p>}
       {error && <p style={{ color: "red" }}>{error}</p>}
@@ -76,35 +127,39 @@ const BookAppointment = () => {
       <form onSubmit={handleSubmit}>
         <div style={styles.field}>
           <label>Select Date:</label>
-          <input 
-            type="date" 
-            value={date} 
-            onChange={(e) => {
-              setDate(e.target.value);
-              console.log("Selected Date:", e.target.value); // <--- Add this line
-            }} 
-            required 
+          <Calendar
+            onChange={setDate}
+            value={date}
+            tileClassName={({ date, view }) => {
+              if (view === 'month' && availableDates.some(d => moment(d).isSame(date, 'day'))) {
+                return 'has-availability';
+              }
+            }}
+            onActiveStartDateChange={({ activeStartDate }) => setActiveDate(activeStartDate)}
           />
         </div>
 
         <div style={styles.field}>
-          <label>Available Timeslots:</label>
-          {availableSlots.length === 0 ? (
-            <p>No slots available for this date.</p>
+          <label>Available Timeslots for {date ? moment(date).format("MMM Do YYYY") : '...'}:</label>
+          {date ? (
+            availability.length === 0 ? (
+              <p>No slots available for this date.</p>
+            ) : (
+              <select
+                  onChange={(e) => setSelectedSlot(e.target.value)}
+                  value={selectedSlot || ""}
+                  required
+                >
+                  <option value="">-- Select a slot --</option>
+                  {availability.map((slot, idx) => (
+                    <option key={idx} value={`${slot.start}-${slot.end}`}>
+                      {slot.start} - {slot.end}
+                    </option>
+                  ))}
+                </select>
+            )
           ) : (
-            <select
-                onChange={(e) => setSelectedSlot(e.target.value)}
-                value={selectedSlot || ""}
-                required
-              >
-                <option value="">-- Select a slot --</option>
-                {availableSlots.map((slot, idx) => (
-                  <option key={idx} value={`${slot.start}-${slot.end}`}>
-                    {slot.start} - {slot.end}
-                  </option>
-                ))}
-              </select>
-
+            <p>Please select a date to see available slots.</p>
           )}
         </div>
 
